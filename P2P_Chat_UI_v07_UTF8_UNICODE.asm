@@ -1,20 +1,20 @@
 ;-----------------------------------------------------------------------------
-; Windows x64 ´¿NASM»ã±à ¡¾È¥ÖĞĞÄ»¯P2PÎŞ´æ´¢ÁÄÌìÏµÍ³ - v0.7 ÖÕ¼«°æ¡¿
-; ºËĞÄÌØĞÔ: Ô­ÉúUTF-8/UnicodeÖĞÎÄÎŞÂÒÂë + v0.6È«¹¦ÄÜ + WIN+JÈ«¾ÖÈÈ¼ü + ÍĞÅÌÆøÅİ+KikoÒô + ·À·ç±©+RC4¼ÓÃÜ
-; ÂÒÂë¸ùÖÎ: SetConsoleCP/SetConsoleOutputCP(65001) UTF-8Ëø¶¨ + È«Á¿xxxW¿í×Ö·ûAPI + ¿í×Ö·û×Ö·û´®´æ´¢
-; ºËĞÄÔ¼Êø: ÑÏ¸ñÎŞ±¾µØ´æ´¢¡¢´¿»ã±àÎŞÒÀÀµ¡¢ÄÚ´æ¡Ü5M¡¢Ïß³Ì°²È«¡¢ÎŞ²ĞÁô¡¢Windows10/11 x64Ô­ÉúÔËĞĞ
-; ±àÒëÖ¸Áî: nasm -f win64 P2P_Chat_UI_v07_UTF8_UNICODE.asm -o P2P_Chat_UI_v07_UTF8_UNICODE.obj
-; Á´½ÓÖ¸Áî: link /subsystem:console /machine:x64 P2P_Chat_UI_v07_UTF8_UNICODE.obj ws2_32.lib kernel32.lib user32.lib shell32.lib winmm.lib iphlpapi.lib -out:P2P_Chat_UI_v07_UTF8_UNICODE.exe
+; Windows x64 çº¯NASMæ±‡ç¼– ã€å»ä¸­å¿ƒåŒ–P2Pæ— å­˜å‚¨èŠå¤©ç³»ç»Ÿ - v0.7 ç»ˆæç‰ˆã€‘
+; æ ¸å¿ƒç‰¹æ€§: åŸç”ŸUTF-8/Unicodeä¸­æ–‡æ— ä¹±ç  + v0.6å…¨åŠŸèƒ½ + WIN+Jå…¨å±€çƒ­é”® + æ‰˜ç›˜æ°”æ³¡+KikoéŸ³ + é˜²é£æš´+RC4åŠ å¯†
+; ä¹±ç æ ¹æ²»: SetConsoleCP/SetConsoleOutputCP(65001) UTF-8é”å®š + å…¨é‡xxxWå®½å­—ç¬¦API + å®½å­—ç¬¦å­—ç¬¦ä¸²å­˜å‚¨
+; æ ¸å¿ƒçº¦æŸ: ä¸¥æ ¼æ— æœ¬åœ°å­˜å‚¨ã€çº¯æ±‡ç¼–æ— ä¾èµ–ã€å†…å­˜â‰¤5Mã€çº¿ç¨‹å®‰å…¨ã€æ— æ®‹ç•™ã€Windows10/11 x64åŸç”Ÿè¿è¡Œ
+; ç¼–è¯‘æŒ‡ä»¤: nasm -f win64 P2P_Chat_UI_v07_UTF8_UNICODE.asm -o P2P_Chat_UI_v07_UTF8_UNICODE.obj
+; é“¾æ¥æŒ‡ä»¤: link /subsystem:console /machine:x64 P2P_Chat_UI_v07_UTF8_UNICODE.obj ws2_32.lib kernel32.lib user32.lib shell32.lib winmm.lib iphlpapi.lib -out:P2P_Chat_UI_v07_UTF8_UNICODE.exe
 ;-----------------------------------------------------------------------------
 bits 64
 default rel
 
-; ====================== ¡¾È«¾Ö³£Á¿¶¨Òå - ºËĞÄÉı¼¶£ºUTF8+¿í×Ö·û³£Á¿¡¿ ======================
-; ÍøÂç/ÈÈ¼ü/ÍĞÅÌ/ÌáÊ¾Òô ºËĞÄ³£Á¿(±£Áôv0.6È«²¿£¬ÎŞĞŞ¸Ä)
+; ====================== ã€å…¨å±€å¸¸é‡å®šä¹‰ - æ ¸å¿ƒå‡çº§ï¼šUTF8+å®½å­—ç¬¦å¸¸é‡ã€‘ ======================
+; ç½‘ç»œ/çƒ­é”®/æ‰˜ç›˜/æç¤ºéŸ³ æ ¸å¿ƒå¸¸é‡(ä¿ç•™v0.6å…¨éƒ¨ï¼Œæ— ä¿®æ”¹)
 P2P_PORT            equ 8888
 MULTICAST_PORT      equ 8889
 MULTICAST_IP        db '224.0.0.251',0
-MSG_BUF_BASE        equ 2048         ; ¼Ó¿í×Ö·û»º³åÇø£¬ÊÊÅäÖĞÎÄ
+MSG_BUF_BASE        equ 2048         ; åŠ å®½å­—ç¬¦ç¼“å†²åŒºï¼Œé€‚é…ä¸­æ–‡
 MSG_FRAG_SIZE       equ 2040
 MSG_QUEUE_MAX_SIZE  equ 5*1024*1024
 WS_VERSION          equ 0202h
@@ -60,10 +60,10 @@ SND_ASYNC           equ 0x00000001
 SND_ALIAS           equ 0x00010000
 SND_ALIAS_SYSTEMNOTIFICATION equ 0x00000000
 SOUND_ENABLED       equ 1
-CP_UTF8             equ 65001       ; ? v07ĞÂÔö: UTF-8±àÂëÒ³
-ENABLE_VIRTUAL_TERMINAL_PROCESSING equ 0x0004 ; ? v07ĞÂÔö: ¿ØÖÆÌ¨¿í×Ö·ûäÖÈ¾
+CP_UTF8             equ 65001       ; ? v07æ–°å¢: UTF-8ç¼–ç é¡µ
+ENABLE_VIRTUAL_TERMINAL_PROCESSING equ 0x0004 ; ? v07æ–°å¢: æ§åˆ¶å°å®½å­—ç¬¦æ¸²æŸ“
 
-; ====================== ¡¾½á¹¹Ìå¶¨Òå - ºËĞÄÉı¼¶£º¿í×Ö·ûÍĞÅÌ½á¹¹Ìå+È«¼æÈİ¡¿ ======================
+; ====================== ã€ç»“æ„ä½“å®šä¹‰ - æ ¸å¿ƒå‡çº§ï¼šå®½å­—ç¬¦æ‰˜ç›˜ç»“æ„ä½“+å…¨å…¼å®¹ã€‘ ======================
 struc FragHeader
     .FragIndex      resb 1
     .TotalFrags     resb 1
@@ -107,7 +107,7 @@ struc Node_Info
     .LastAlive      resq 1
 endstruc
 
-; ? v07ºËĞÄÉı¼¶: ¿í×Ö·û°æÍĞÅÌ½á¹¹Ìå NOTIFYICONDATAW (½â¾öÍĞÅÌÖĞÎÄÂÒÂë)
+; ? v07æ ¸å¿ƒå‡çº§: å®½å­—ç¬¦ç‰ˆæ‰˜ç›˜ç»“æ„ä½“ NOTIFYICONDATAW (è§£å†³æ‰˜ç›˜ä¸­æ–‡ä¹±ç )
 struc NOTIFYICONDATAW
     .cbSize         resd 1
     .hWnd           resq 1
@@ -115,43 +115,43 @@ struc NOTIFYICONDATAW
     .uFlags         resd 1
     .uCallbackMessage resd 1
     .hIcon          resq 1
-    .szTip          resw 128         ; ¿í×Ö·û: ÍĞÅÌĞü¸¡ÌáÊ¾(ÖĞÎÄ)
+    .szTip          resw 128         ; å®½å­—ç¬¦: æ‰˜ç›˜æ‚¬æµ®æç¤º(ä¸­æ–‡)
     .dwState        resd 1
     .dwStateMask    resd 1
-    .szInfo         resw 256         ; ¿í×Ö·û: ÍĞÅÌÆøÅİÄÚÈİ(ÖĞÎÄÏûÏ¢)
+    .szInfo         resw 256         ; å®½å­—ç¬¦: æ‰˜ç›˜æ°”æ³¡å†…å®¹(ä¸­æ–‡æ¶ˆæ¯)
     .uTimeoutOrVersion resd 1
-    .szInfoTitle    resw 64          ; ¿í×Ö·û: ÍĞÅÌÆøÅİ±êÌâ(ÖĞÎÄ)
+    .szInfoTitle    resw 64          ; å®½å­—ç¬¦: æ‰˜ç›˜æ°”æ³¡æ ‡é¢˜(ä¸­æ–‡)
     .dwInfoFlags    resd 1
 endstruc
 
-; ====================== ¡¾Êı¾İ¶Î - ºËĞÄÉı¼¶£ºÈ«UTF-16¿í×Ö·ûÖĞÎÄ³£Á¿£¬ÎŞÂÒÂë¡¿ ======================
+; ====================== ã€æ•°æ®æ®µ - æ ¸å¿ƒå‡çº§ï¼šå…¨UTF-16å®½å­—ç¬¦ä¸­æ–‡å¸¸é‡ï¼Œæ— ä¹±ç ã€‘ ======================
 section .data
-    ; ? v07È«²¿¸ÄÎª¡¾UTF-16 LE ¿í×Ö·û¡¿ÖĞÎÄ³£Á¿£¬Ö±½ÓÏÔÊ¾ÎŞÂÒÂë£¬dw¶¨Òå(2×Ö½Ú/×Ö·û)£¬½áÎ²0x0000
-    szTitle           dw '=== P2PÁÄÌìÏµÍ³ v0.7(NASM) | Ô­ÉúÖĞÎÄ+UnicodeÎŞÂÒÂë | WIN+J+ÍĞÅÌÌáÊ¾+KikoÒô | ÄÚ´æ¡Ü5M ===',0x000a,0x0000
-    szAutoDiscover    dw '[ÏµÍ³] ¿ªÊ¼Ì½²â¾ÖÓòÍø½Úµã(·À·ç±©Ä£Ê½)£¬É¨ÃèIP:1~254£¬¼ä¸ô5Ãë',0x0000
-    szNodeFound       dw '[ÏµÍ³] ·¢ÏÖÔÚÏß½Úµã: %s (µ±Ç°ÔÚÏß:%d)',0x0000
-    szConnOK          dw '[ÏµÍ³] Óë½Úµã½¨Á¢Ë«Ïò¼ÓÃÜÁ¬½Ó£¬RC4°²È«Í¨ĞÅ¿ªÆô',0x0000
-    szReconnecting    dw '[ÏµÍ³] Á¬½Ó¶Ï¿ª£¬Æô¶¯×Ô¶¯ÖØÁ¬»úÖÆ...',0x0000
-    szReconnOK        dw '[ÏµÍ³] ¶ÏÏßÖØÁ¬³É¹¦£¬»Ö¸´¼ÓÃÜÁÄÌì',0x0000
-    szMsgEncrypt      dw '[°²È«] RC4Á÷¼ÓÃÜÒÑÆôÓÃ£¬·ÀĞáÌ½/·ÀÆÆ½â',0x0000
-    szMulticastSend   dw '[×é²¥¹ã²¥] > ',0x0000
-    szMulticastRecv   dw '[×é²¥¹ã²¥] < ',0x0000
-    szQueueFull       dw '[¾¯¸æ] ÏûÏ¢¶ÓÁĞÒÑÂú(5MB)£¬ĞÂÏûÏ¢½«¸²¸Ç×î¾ÉÀúÊ·ÏûÏ¢!',0x0000
-    szSendTip         dw '[ÎÒ] > ',0x0000  ; ÖĞÎÄÊäÈëÇ°×º
-    szRecvTip         dw '[½Úµã] > ',0x0000; ÖĞÎÄ½ÓÊÕÇ°×º
-    szEmptyInput      dw '[ÌáÊ¾] ÊäÈëÎª¿Õ£¬ÇëÖØĞÂÊäÈë',0x0000
-    szInputOverLen    dw '[¾¯¸æ] ÊäÈë³¬³¤£¬ÒÑ×Ô¶¯½Ø¶Ï(×î´ó2020×Ö·û)',0x0000
-    szExitOK          dw '[ÏµÍ³] ÍË³ö³É¹¦£¬ËùÓĞ×ÊÔ´ÒÑÊÍ·Å£¬ÎŞ²ĞÁôÊı¾İ',0x0000
-    szNodeTimeout     dw '[ÏµÍ³] ÇåÀí³¬Ê±½Úµã£¬µ±Ç°ÔÚÏß:%d',0x0000
-    szHotkeyRegOK     dw '[ÏµÍ³] È«¾ÖÈÈ¼ü WIN+J ×¢²á³É¹¦£¬°´WIN+JÒş²Ø/ÏÔÊ¾´°¿Ú',0x0000
-    szSoundEnabled    dw '[ÏµÍ³] KikoÌáÊ¾ÒôÒÑÆôÓÃ£¬ÊÕµ½ÏûÏ¢×Ô¶¯²¥·Å',0x0000
-    szUTF8Enabled     dw '[ÏµÍ³] UTF-8±àÂëÒÑËø¶¨£¬Ô­ÉúÖ§³ÖÖĞÎÄ/UnicodeËùÓĞ×Ö·û£¬ÎŞÂÒÂë!',0x0000 ;?ĞÂÔö
-    ; ? ÍĞÅÌÖĞÎÄÌáÊ¾È«²¿¿í×Ö·û£¬ÍêÃÀÏÔÊ¾
-    szTrayTip         dw 'P2PÁÄÌìÏµÍ³ v0.7 | WIN+J ÏÔÊ¾/Òş²Ø | ĞÂÏûÏ¢×Ô¶¯ÌáĞÑ | Ô­ÉúÖĞÎÄÎŞÂÒÂë',0x0000
-    TRAY_MSG_TITLE    dw 'ĞÂÏûÏ¢ÌáĞÑ',0x0000
-    TRAY_MSG_PREFIX   dw 'À´×Ô½Úµã: ',0x0000
+    ; ? v07å…¨éƒ¨æ”¹ä¸ºã€UTF-16 LE å®½å­—ç¬¦ã€‘ä¸­æ–‡å¸¸é‡ï¼Œç›´æ¥æ˜¾ç¤ºæ— ä¹±ç ï¼Œdwå®šä¹‰(2å­—èŠ‚/å­—ç¬¦)ï¼Œç»“å°¾0x0000
+    szTitle           dw '=== P2PèŠå¤©ç³»ç»Ÿ v0.7(NASM) | åŸç”Ÿä¸­æ–‡+Unicodeæ— ä¹±ç  | WIN+J+æ‰˜ç›˜æç¤º+KikoéŸ³ | å†…å­˜â‰¤5M ===',0x000a,0x0000
+    szAutoDiscover    dw '[ç³»ç»Ÿ] å¼€å§‹æ¢æµ‹å±€åŸŸç½‘èŠ‚ç‚¹(é˜²é£æš´æ¨¡å¼)ï¼Œæ‰«æIP:1~254ï¼Œé—´éš”5ç§’',0x0000
+    szNodeFound       dw '[ç³»ç»Ÿ] å‘ç°åœ¨çº¿èŠ‚ç‚¹: %s (å½“å‰åœ¨çº¿:%d)',0x0000
+    szConnOK          dw '[ç³»ç»Ÿ] ä¸èŠ‚ç‚¹å»ºç«‹åŒå‘åŠ å¯†è¿æ¥ï¼ŒRC4å®‰å…¨é€šä¿¡å¼€å¯',0x0000
+    szReconnecting    dw '[ç³»ç»Ÿ] è¿æ¥æ–­å¼€ï¼Œå¯åŠ¨è‡ªåŠ¨é‡è¿æœºåˆ¶...',0x0000
+    szReconnOK        dw '[ç³»ç»Ÿ] æ–­çº¿é‡è¿æˆåŠŸï¼Œæ¢å¤åŠ å¯†èŠå¤©',0x0000
+    szMsgEncrypt      dw '[å®‰å…¨] RC4æµåŠ å¯†å·²å¯ç”¨ï¼Œé˜²å—…æ¢/é˜²ç ´è§£',0x0000
+    szMulticastSend   dw '[ç»„æ’­å¹¿æ’­] > ',0x0000
+    szMulticastRecv   dw '[ç»„æ’­å¹¿æ’­] < ',0x0000
+    szQueueFull       dw '[è­¦å‘Š] æ¶ˆæ¯é˜Ÿåˆ—å·²æ»¡(5MB)ï¼Œæ–°æ¶ˆæ¯å°†è¦†ç›–æœ€æ—§å†å²æ¶ˆæ¯!',0x0000
+    szSendTip         dw '[æˆ‘] > ',0x0000  ; ä¸­æ–‡è¾“å…¥å‰ç¼€
+    szRecvTip         dw '[èŠ‚ç‚¹] > ',0x0000; ä¸­æ–‡æ¥æ”¶å‰ç¼€
+    szEmptyInput      dw '[æç¤º] è¾“å…¥ä¸ºç©ºï¼Œè¯·é‡æ–°è¾“å…¥',0x0000
+    szInputOverLen    dw '[è­¦å‘Š] è¾“å…¥è¶…é•¿ï¼Œå·²è‡ªåŠ¨æˆªæ–­(æœ€å¤§2020å­—ç¬¦)',0x0000
+    szExitOK          dw '[ç³»ç»Ÿ] é€€å‡ºæˆåŠŸï¼Œæ‰€æœ‰èµ„æºå·²é‡Šæ”¾ï¼Œæ— æ®‹ç•™æ•°æ®',0x0000
+    szNodeTimeout     dw '[ç³»ç»Ÿ] æ¸…ç†è¶…æ—¶èŠ‚ç‚¹ï¼Œå½“å‰åœ¨çº¿:%d',0x0000
+    szHotkeyRegOK     dw '[ç³»ç»Ÿ] å…¨å±€çƒ­é”® WIN+J æ³¨å†ŒæˆåŠŸï¼ŒæŒ‰WIN+Jéšè—/æ˜¾ç¤ºçª—å£',0x0000
+    szSoundEnabled    dw '[ç³»ç»Ÿ] Kikoæç¤ºéŸ³å·²å¯ç”¨ï¼Œæ”¶åˆ°æ¶ˆæ¯è‡ªåŠ¨æ’­æ”¾',0x0000
+    szUTF8Enabled     dw '[ç³»ç»Ÿ] UTF-8ç¼–ç å·²é”å®šï¼ŒåŸç”Ÿæ”¯æŒä¸­æ–‡/Unicodeæ‰€æœ‰å­—ç¬¦ï¼Œæ— ä¹±ç !',0x0000 ;?æ–°å¢
+    ; ? æ‰˜ç›˜ä¸­æ–‡æç¤ºå…¨éƒ¨å®½å­—ç¬¦ï¼Œå®Œç¾æ˜¾ç¤º
+    szTrayTip         dw 'P2PèŠå¤©ç³»ç»Ÿ v0.7 | WIN+J æ˜¾ç¤º/éšè— | æ–°æ¶ˆæ¯è‡ªåŠ¨æé†’ | åŸç”Ÿä¸­æ–‡æ— ä¹±ç ',0x0000
+    TRAY_MSG_TITLE    dw 'æ–°æ¶ˆæ¯æé†’',0x0000
+    TRAY_MSG_PREFIX   dw 'æ¥è‡ªèŠ‚ç‚¹: ',0x0000
 
-    ; È«¾ÖÄÚ´æ±äÁ¿(±£Áô+À©Èİ¿í×Ö·û»º³åÇø)
+    ; å…¨å±€å†…å­˜å˜é‡(ä¿ç•™+æ‰©å®¹å®½å­—ç¬¦ç¼“å†²åŒº)
     WSADataBuf        db 64 dup(0)
     g_hTCPSock        dq 0
     g_hUDPSock        dq 0
@@ -177,10 +177,10 @@ section .data
     g_WindowVisible   dq 1
     g_hTrayIcon       dq 0
     g_hHotkeyThread   dq 0
-    nid               istruc NOTIFYICONDATAW iend ; ? ¿í×Ö·ûÍĞÅÌ½á¹¹Ìå
-    g_TempMsgBuf      dw 256 dup(0)       ; ? ¿í×Ö·ûÏûÏ¢»º³åÇø(ÖĞÎÄÆ´½Ó)
+    nid               istruc NOTIFYICONDATAW iend ; ? å®½å­—ç¬¦æ‰˜ç›˜ç»“æ„ä½“
+    g_TempMsgBuf      dw 256 dup(0)       ; ? å®½å­—ç¬¦æ¶ˆæ¯ç¼“å†²åŒº(ä¸­æ–‡æ‹¼æ¥)
 
-; ====================== ¡¾Íâ²¿APIÉùÃ÷ - ºËĞÄÉı¼¶£ºÈ«Á¿¿í×Ö·ûxxxW API + UTF8±àÂëAPI¡¿ ======================
+; ====================== ã€å¤–éƒ¨APIå£°æ˜ - æ ¸å¿ƒå‡çº§ï¼šå…¨é‡å®½å­—ç¬¦xxxW API + UTF8ç¼–ç APIã€‘ ======================
 extern WSAStartup:PROC, WSACleanup:PROC
 extern socket:PROC, closesocket:PROC, bind:PROC, listen:PROC, accept:PROC
 extern connect:PROC, send:PROC, recv:PROC, sendto:PROC, recvfrom:PROC
@@ -191,21 +191,21 @@ extern GetAdaptersAddresses:PROC, setsockopt:PROC
 extern CreateMutexA:PROC, ReleaseMutex:PROC
 extern RegisterHotKey:PROC, UnregisterHotKey:PROC
 extern GetConsoleWindow:PROC, ShowWindow:PROC, IsWindowVisible:PROC
-extern Shell_NotifyIconW:PROC, LoadIcon:PROC, DestroyIcon:PROC ; ? Shell_NotifyIconW ¿í×Ö·û°æ
+extern Shell_NotifyIconW:PROC, LoadIcon:PROC, DestroyIcon:PROC ; ? Shell_NotifyIconW å®½å­—ç¬¦ç‰ˆ
 extern GetMessageA:PROC, TranslateMessage:PROC, DispatchMessageA:PROC
 extern PlaySoundA:PROC
-; ? v07ĞÂÔöºËĞÄAPI: UTF8±àÂëËø¶¨ + ¿í×Ö·û¿ØÖÆÌ¨API + ¿í×Ö·û×Ö·û´®´¦Àí
+; ? v07æ–°å¢æ ¸å¿ƒAPI: UTF8ç¼–ç é”å®š + å®½å­—ç¬¦æ§åˆ¶å°API + å®½å­—ç¬¦å­—ç¬¦ä¸²å¤„ç†
 extern SetConsoleCP:PROC, SetConsoleOutputCP:PROC
 extern GetConsoleMode:PROC, SetConsoleMode:PROC
-extern SetConsoleTitleW:PROC ; ? ¿í×Ö·û´°¿Ú±êÌâ
-extern wprintf:PROC, _getws_s:PROC, wcslen:PROC ; ? ¿í×Ö·û´òÓ¡/ÊäÈë/³¤¶È
+extern SetConsoleTitleW:PROC ; ? å®½å­—ç¬¦çª—å£æ ‡é¢˜
+extern wprintf:PROC, _getws_s:PROC, wcslen:PROC ; ? å®½å­—ç¬¦æ‰“å°/è¾“å…¥/é•¿åº¦
 
-; ====================== ¡¾´úÂë¶Î - ÍêÕûÔ´Âë£¬ĞÂÔöUTF8³õÊ¼»¯+È«¿í×Ö·ûÊÊÅä£¬ÒÑ±ê×¢¡¿ ======================
+; ====================== ã€ä»£ç æ®µ - å®Œæ•´æºç ï¼Œæ–°å¢UTF8åˆå§‹åŒ–+å…¨å®½å­—ç¬¦é€‚é…ï¼Œå·²æ ‡æ³¨ã€‘ ======================
 section .text
 global main
 
 ;-----------------------------------------------------------------------------
-; Ïß³Ì°²È«Ëø(Ô­ÓĞ£¬ÎŞĞŞ¸Ä)
+; çº¿ç¨‹å®‰å…¨é”(åŸæœ‰ï¼Œæ— ä¿®æ”¹)
 ;-----------------------------------------------------------------------------
 Lock_Mutex:
     push rbp
@@ -227,18 +227,18 @@ Unlock_Mutex:
     ret
 
 ;-----------------------------------------------------------------------------
-; ? v07 ĞÂÔö¡¾ºËĞÄº¯Êı1¡¿¿ØÖÆÌ¨UTF8³õÊ¼»¯ - ¸ùÖÎÖĞÎÄÂÒÂëµÄºËĞÄ£¬±ØĞë×îÏÈµ÷ÓÃ
-; ¹¦ÄÜ: Ëø¶¨UTF8±àÂëÒ³+ÆôÓÃ¿í×Ö·ûäÖÈ¾£¬Ö´ĞĞºó¿ØÖÆÌ¨ÓÀ¾ÃÖ§³ÖÖĞÎÄ/Unicode
+; ? v07 æ–°å¢ã€æ ¸å¿ƒå‡½æ•°1ã€‘æ§åˆ¶å°UTF8åˆå§‹åŒ– - æ ¹æ²»ä¸­æ–‡ä¹±ç çš„æ ¸å¿ƒï¼Œå¿…é¡»æœ€å…ˆè°ƒç”¨
+; åŠŸèƒ½: é”å®šUTF8ç¼–ç é¡µ+å¯ç”¨å®½å­—ç¬¦æ¸²æŸ“ï¼Œæ‰§è¡Œåæ§åˆ¶å°æ°¸ä¹…æ”¯æŒä¸­æ–‡/Unicode
 ;-----------------------------------------------------------------------------
 Console_UTF8_Init:
     push rbp rbx rsi rdi
     sub rsp, 0x28
-    ; ²½Öè1: Ëø¶¨¿ØÖÆÌ¨ÊäÈë/Êä³ö±àÂëÎª UTF-8 (65001)
+    ; æ­¥éª¤1: é”å®šæ§åˆ¶å°è¾“å…¥/è¾“å‡ºç¼–ç ä¸º UTF-8 (65001)
     mov rcx, CP_UTF8
     call SetConsoleCP
     mov rcx, CP_UTF8
     call SetConsoleOutputCP
-    ; ²½Öè2: ÆôÓÃ¿ØÖÆÌ¨¿í×Ö·ûäÖÈ¾Ä£Ê½£¬±ÜÃâÖĞÎÄ´íÎ»
+    ; æ­¥éª¤2: å¯ç”¨æ§åˆ¶å°å®½å­—ç¬¦æ¸²æŸ“æ¨¡å¼ï¼Œé¿å…ä¸­æ–‡é”™ä½
     mov rcx, -11
     call GetStdHandle
     mov rbx, rax
@@ -251,7 +251,7 @@ Console_UTF8_Init:
     lea rdx, [rsp]
     call SetConsoleMode
     add rsp,4
-    ; ²½Öè3: ´òÓ¡UTF8ÆôÓÃÌáÊ¾
+    ; æ­¥éª¤3: æ‰“å°UTF8å¯ç”¨æç¤º
     lea rcx, [szUTF8Enabled]
     mov rdx, 3
     call UI_Print_Msg
@@ -260,7 +260,7 @@ Console_UTF8_Init:
     ret
 
 ;-----------------------------------------------------------------------------
-; v06Ô­ÓĞ¡¾²¥·ÅKikoÌáÊ¾Òô¡¿ÎŞĞŞ¸Ä
+; v06åŸæœ‰ã€æ’­æ”¾Kikoæç¤ºéŸ³ã€‘æ— ä¿®æ”¹
 ;-----------------------------------------------------------------------------
 Play_Kiko_Sound:
     push rbp
@@ -277,7 +277,7 @@ Play_Kiko_Sound:
     ret
 
 ;-----------------------------------------------------------------------------
-; ? v07 Éı¼¶¡¾ÍĞÅÌÆøÅİÌáÊ¾¡¿¿í×Ö·û°æ - ÖĞÎÄÏûÏ¢ÍêÃÀÏÔÊ¾£¬ÎŞÂÒÂë
+; ? v07 å‡çº§ã€æ‰˜ç›˜æ°”æ³¡æç¤ºã€‘å®½å­—ç¬¦ç‰ˆ - ä¸­æ–‡æ¶ˆæ¯å®Œç¾æ˜¾ç¤ºï¼Œæ— ä¹±ç 
 ;-----------------------------------------------------------------------------
 Show_Tray_Notification:
     push rbx rbp rsi rdi
@@ -315,7 +315,7 @@ Show_Tray_Notification:
     mov dword [nid + NOTIFYICONDATAW.dwInfoFlags], NIIF_INFO
     mov rcx, NIM_MODIFY
     lea rdx, [nid]
-    call Shell_NotifyIconW ; ? ¿í×Ö·û°æÍĞÅÌÆøÅİ
+    call Shell_NotifyIconW ; ? å®½å­—ç¬¦ç‰ˆæ‰˜ç›˜æ°”æ³¡
     call Unlock_Mutex
     call Play_Kiko_Sound
     add rsp, 0x28
@@ -323,7 +323,7 @@ Show_Tray_Notification:
     ret
 
 ;-----------------------------------------------------------------------------
-; Ô­ÓĞÈÈ¼ü/ÍĞÅÌ/´°¿ÚÇĞ»»º¯Êı(ÎŞĞŞ¸Ä£¬¼æÈİ¿í×Ö·û)
+; åŸæœ‰çƒ­é”®/æ‰˜ç›˜/çª—å£åˆ‡æ¢å‡½æ•°(æ— ä¿®æ”¹ï¼Œå…¼å®¹å®½å­—ç¬¦)
 ;-----------------------------------------------------------------------------
 Register_Global_Hotkey:
     push rbp
@@ -367,7 +367,7 @@ Tray_Init:
     lea rdi, [nid + NOTIFYICONDATAW.szTip]
     mov rcx, 128
     cld
-    rep movsw ; ? ¿í×Ö·û¸´ÖÆ
+    rep movsw ; ? å®½å­—ç¬¦å¤åˆ¶
     mov rcx, NIM_ADD
     lea rdx, [nid]
     call Shell_NotifyIconW
@@ -458,7 +458,7 @@ Cleanup_Tray_Hotkey:
     ret
 
 ;-----------------------------------------------------------------------------
-; Ô­ÓĞ¹¤¾ßº¯Êı/¼ÓÃÜ/·ÖÆ¬/½Úµã·¢ÏÖ(ÎŞĞŞ¸Ä£¬¼æÈİ¿í×Ö·û)
+; åŸæœ‰å·¥å…·å‡½æ•°/åŠ å¯†/åˆ†ç‰‡/èŠ‚ç‚¹å‘ç°(æ— ä¿®æ”¹ï¼Œå…¼å®¹å®½å­—ç¬¦)
 ;-----------------------------------------------------------------------------
 Get_Random_Delay:
     push rbx
@@ -561,17 +561,17 @@ RC4_Crypt:
     ret
 
 ;-----------------------------------------------------------------------------
-; ? v07 Éı¼¶¡¾UI³õÊ¼»¯¡¿¿í×Ö·û°æ - ÏÈÖ´ĞĞUTF8³õÊ¼»¯£¬ÖĞÎÄÍêÃÀÏÔÊ¾
+; ? v07 å‡çº§ã€UIåˆå§‹åŒ–ã€‘å®½å­—ç¬¦ç‰ˆ - å…ˆæ‰§è¡ŒUTF8åˆå§‹åŒ–ï¼Œä¸­æ–‡å®Œç¾æ˜¾ç¤º
 ;-----------------------------------------------------------------------------
 UI_Init:
     push rbx rbp
     sub rsp, 0x28
-    call Console_UTF8_Init ; ? µÚÒ»²½Ö´ĞĞ£¬¸ùÖÎÂÒÂë
+    call Console_UTF8_Init ; ? ç¬¬ä¸€æ­¥æ‰§è¡Œï¼Œæ ¹æ²»ä¹±ç 
     mov rcx, -11
     call GetStdHandle
     mov [g_hConsole], rax
     lea rcx, [szTitle]
-    call SetConsoleTitleW ; ? ¿í×Ö·û´°¿Ú±êÌâ
+    call SetConsoleTitleW ; ? å®½å­—ç¬¦çª—å£æ ‡é¢˜
     mov rcx, [g_hConsole]
     lea rdx, [cci]
     call SetConsoleCursorInfo
@@ -586,7 +586,7 @@ UI_Init:
     mov rdx, 0
     call UI_Set_Cursor
     lea rcx, [szTitle]
-    call wprintf ; ? ¿í×Ö·û´òÓ¡
+    call wprintf ; ? å®½å­—ç¬¦æ‰“å°
     mov rcx, 0x7
     call UI_Set_Color
     mov rcx, 0
@@ -596,7 +596,7 @@ UI_Init:
     xor rbx, rbx
 UI_Draw_Line:
     push rcx
-    mov rcx, '©¤'
+    mov rcx, 'â”€'
     call wprintf
     pop rcx
     inc rbx
@@ -637,7 +637,7 @@ UI_Set_Color:
     ret
 
 ;-----------------------------------------------------------------------------
-; ? v07 Éı¼¶¡¾UI´òÓ¡ÏûÏ¢¡¿¿í×Ö·û°æ - ÖĞÎÄÎŞÂÒÂë£¬ÑÕÉ«Çø·Ö²»±ä
+; ? v07 å‡çº§ã€UIæ‰“å°æ¶ˆæ¯ã€‘å®½å­—ç¬¦ç‰ˆ - ä¸­æ–‡æ— ä¹±ç ï¼Œé¢œè‰²åŒºåˆ†ä¸å˜
 ;-----------------------------------------------------------------------------
 UI_Print_Msg:
     push rbx rbp rsi
@@ -663,7 +663,7 @@ UI_Print_Msg:
     mov rdx,[g_ChatRow]
     call UI_Set_Cursor
     mov rcx,rsi
-    call wprintf ; ? ¿í×Ö·û´òÓ¡£¬ÖĞÎÄÍêÃÀÏÔÊ¾
+    call wprintf ; ? å®½å­—ç¬¦æ‰“å°ï¼Œä¸­æ–‡å®Œç¾æ˜¾ç¤º
     inc qword [g_ChatRow]
     cmp qword [g_ChatRow],25
     jl .exit
@@ -719,7 +719,7 @@ Msg_Queue_Push:
     sub qword [g_QueueSize],rbx
 .write:
     cld
-    rep movsw ; ? ¿í×Ö·û¸´ÖÆ
+    rep movsw ; ? å®½å­—ç¬¦å¤åˆ¶
     add qword [g_QueueTail],rbx*2
     add qword [g_QueueSize],rbx*2
     cmp rdi,rbp+MSG_QUEUE_MAX_SIZE
@@ -1052,7 +1052,7 @@ Multicast_Init:
     ret
 
 ;-----------------------------------------------------------------------------
-; ? v07 Éı¼¶¡¾TCP½ÓÊÕÏß³Ì¡¿¿í×Ö·û°æ - ÖĞÎÄÏûÏ¢½ÓÊÕ+ÍĞÅÌÌáÊ¾ÎŞÂÒÂë
+; ? v07 å‡çº§ã€TCPæ¥æ”¶çº¿ç¨‹ã€‘å®½å­—ç¬¦ç‰ˆ - ä¸­æ–‡æ¶ˆæ¯æ¥æ”¶+æ‰˜ç›˜æç¤ºæ— ä¹±ç 
 ;-----------------------------------------------------------------------------
 P2P_Recv_Thread:
     push rbx rbp rsi rdi
@@ -1097,7 +1097,7 @@ P2P_Recv_Thread:
     ret
 
 ;-----------------------------------------------------------------------------
-; ? v07 Éı¼¶¡¾UDP×é²¥½ÓÊÕÏß³Ì¡¿¿í×Ö·û°æ - ÖĞÎÄ×é²¥ÏûÏ¢ÎŞÂÒÂë
+; ? v07 å‡çº§ã€UDPç»„æ’­æ¥æ”¶çº¿ç¨‹ã€‘å®½å­—ç¬¦ç‰ˆ - ä¸­æ–‡ç»„æ’­æ¶ˆæ¯æ— ä¹±ç 
 ;-----------------------------------------------------------------------------
 UDP_Multicast_Recv_Thread:
     push rbx rbp rsi rdi
@@ -1129,7 +1129,7 @@ UDP_Multicast_Recv_Thread:
     ret
 
 ;-----------------------------------------------------------------------------
-; ? v07 Éı¼¶¡¾UDP×é²¥·¢ËÍÏß³Ì¡¿¿í×Ö·û°æ - ÖĞÎÄÊäÈë+·¢ËÍÎŞÂÒÂë
+; ? v07 å‡çº§ã€UDPç»„æ’­å‘é€çº¿ç¨‹ã€‘å®½å­—ç¬¦ç‰ˆ - ä¸­æ–‡è¾“å…¥+å‘é€æ— ä¹±ç 
 ;-----------------------------------------------------------------------------
 UDP_Multicast_Send_Thread:
     push rbx rbp rsi rdi
@@ -1150,10 +1150,10 @@ UDP_Multicast_Send_Thread:
     call wprintf
     lea rcx,[rsp+0x28]
     mov rdx,MSG_BUF_BASE/2
-    call _getws_s ; ? ¿í×Ö·ûÊäÈë£¬ÖĞÎÄÖ±½ÓÊäÈëÎŞÂÒÂë
+    call _getws_s ; ? å®½å­—ç¬¦è¾“å…¥ï¼Œä¸­æ–‡ç›´æ¥è¾“å…¥æ— ä¹±ç 
     test rax,rax
     jnz .empty
-    call wcslen ; ? ¿í×Ö·û³¤¶È¼ÆËã
+    call wcslen ; ? å®½å­—ç¬¦é•¿åº¦è®¡ç®—
     cmp rax,MSG_FRAG_SIZE/2
     jg .over_len
     call RC4_Crypt
@@ -1177,7 +1177,7 @@ UDP_Multicast_Send_Thread:
     ret
 
 ;-----------------------------------------------------------------------------
-; ? v07 Éı¼¶¡¾ºËĞÄÒµÎñ¡¿¿í×Ö·ûÊäÈë·¢ËÍ - ÖĞÎÄÊäÈëÍêÃÀÖ§³Ö£¬»Ø³µ·¢ËÍÎŞÂÒÂë
+; ? v07 å‡çº§ã€æ ¸å¿ƒä¸šåŠ¡ã€‘å®½å­—ç¬¦è¾“å…¥å‘é€ - ä¸­æ–‡è¾“å…¥å®Œç¾æ”¯æŒï¼Œå›è½¦å‘é€æ— ä¹±ç 
 ;-----------------------------------------------------------------------------
 TCP_P2P_Core:
     push rbx rbp rsi rdi
@@ -1254,7 +1254,7 @@ TCP_P2P_Core:
     sub rsp,MSG_BUF_BASE
     lea rcx,[rsp]
     mov rdx,MSG_BUF_BASE/2
-    call _getws_s ; ? ÖĞÎÄÊäÈëºËĞÄAPI£¬Ö±½ÓÊäÈëÖĞÎÄÎŞÂÒÂë
+    call _getws_s ; ? ä¸­æ–‡è¾“å…¥æ ¸å¿ƒAPIï¼Œç›´æ¥è¾“å…¥ä¸­æ–‡æ— ä¹±ç 
     test rax,rax
     jnz .empty_input
     call wcslen
@@ -1286,7 +1286,7 @@ TCP_P2P_Core:
     ret
 
 ;-----------------------------------------------------------------------------
-; ³ÌĞòÖ÷Èë¿Ú(ÎŞĞŞ¸Ä£¬¼æÈİ¿í×Ö·û)
+; ç¨‹åºä¸»å…¥å£(æ— ä¿®æ”¹ï¼Œå…¼å®¹å®½å­—ç¬¦)
 ;-----------------------------------------------------------------------------
 main:
     push rbx rbp rsi rdi
@@ -1354,8 +1354,9 @@ main:
 
 
 
-### µÚÒ»²½£ºNASM»ã±à±àÒëÎªOBJÎÄ¼ş
+### ç¬¬ä¸€æ­¥ï¼šNASMæ±‡ç¼–ç¼–è¯‘ä¸ºOBJæ–‡ä»¶
 #nasm -f win64 P2P_Chat_UI_v07_UTF8_UNICODE.asm -o P2P_Chat_UI_v07_UTF8_UNICODE.obj
 
-### µÚ¶ş²½£ºÎ¢ÈíLinkÁ´½ÓÎªEXE£¨¿âÎÄ¼şÓëv06Ò»ÖÂ£¬ÎŞĞèĞŞ¸Ä£©
+### ç¬¬äºŒæ­¥ï¼šå¾®è½¯Linké“¾æ¥ä¸ºEXEï¼ˆåº“æ–‡ä»¶ä¸v06ä¸€è‡´ï¼Œæ— éœ€ä¿®æ”¹ï¼‰
+
 #link /subsystem:console /machine:x64 P2P_Chat_UI_v07_UTF8_UNICODE.obj ws2_32.lib kernel32.lib user32.lib shell32.lib winmm.lib iphlpapi.lib -out:P2P_Chat_UI_v07_UTF8_UNICODE.exe
