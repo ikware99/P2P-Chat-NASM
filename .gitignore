@@ -1,0 +1,29 @@
+# 编译产物
+*.obj
+*.exe
+*.dll
+*.lib
+*.pdb
+
+# 临时文件
+*.tmp
+*.bak
+*.log
+*.cache
+
+# Windows系统文件
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# 编辑器缓存
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# 编译中间文件
+build/
+dist/
+out/
