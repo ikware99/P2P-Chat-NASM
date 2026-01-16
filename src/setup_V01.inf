@@ -1,0 +1,56 @@
+[Version]
+Signature="$WINDOWS NT$"
+Class=DiskDrive
+ClassGuid={4d36e967-e325-11ce-bfc1-08002be10318}
+Provider=%ASM%
+DriverVer=01/16/2026,01.00.0000 ; V0.1版本号
+CatalogFile=VirtualUsbDisk_V01.cat
+
+[Manufacturer]
+%ASM%=ASM_Device,NTamd64,NTx86
+
+[ASM_Device.NTamd64]
+%VirtualDisk.DeviceDesc%=VirtualDisk_Install, Root\ASM_VirtualUSB64_V01
+
+[ASM_Device.NTx86]
+%VirtualDisk.DeviceDesc%=VirtualDisk_Install, Root\ASM_VirtualUSB32_V01
+
+[VirtualDisk_Install]
+CopyFiles=DriverFiles
+AddReg=VirtualDisk_AddReg
+
+[DriverFiles]
+VirtualUsbDisk.sys,,,0x20 ; 驱动文件，系统自动复制到系统驱动目录
+
+[VirtualDisk_AddReg]
+HKR,DeviceParameters,DriverVersion,0x00010001,%DRIVER_VERSION%
+HKR,DeviceParameters,ReadOnlyStatus,0x00010001,0 ; 初始状态：解锁可写
+HKR,DeviceParameters,CapacityMB,%DISK_SIZE_MB%
+HKR,DeviceParameters,VolumeLabel,%FAT32_VOLUME_LABEL%
+HKR,DeviceParameters,Vendor,%VENDOR_NAME%
+HKR,DeviceParameters,Product,%PRODUCT_NAME%
+
+[VirtualDisk_Install.Services]
+AddService=VirtualUsbDisk_V01,0x00000002,VirtualDisk_Service_Inst
+
+[VirtualDisk_Service_Inst]
+DisplayName=%VirtualDisk.SvcDesc%
+ServiceType=1                  ; SERVICE_KERNEL_DRIVER 内核驱动
+StartType=3                    ; SERVICE_DEMAND_START 手动加载
+ErrorControl=1                 ; SERVICE_ERROR_NORMAL 正常错误处理
+ServiceBinary=%12%\VirtualUsbDisk.sys
+LoadOrderGroup=Disk
+
+[VirtualDisk_Install.Uninstall]
+DelService=VirtualUsbDisk_V01,0x00000004 ; 卸载时删除服务+驱动文件
+DelFiles=DriverFiles
+
+[Strings]
+ASM="ASM Virtual USB Driver V0.1"
+VirtualDisk.DeviceDesc="ASM 虚拟USB优盘 V0.1 (先写后锁)"
+VirtualDisk.SvcDesc="ASM Virtual USB Disk Driver V0.1 [Write2Lock]"
+DRIVER_VERSION="V0.1"
+DISK_SIZE_MB="2048"
+FAT32_VOLUME_LABEL="ASM_VDISK_V01"
+VENDOR_NAME="ASM-USB V0.1"
+PRODUCT_NAME="Virtual USB Disk [Write2Lock]"

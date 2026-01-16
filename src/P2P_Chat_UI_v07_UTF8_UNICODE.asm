@@ -179,26 +179,29 @@ section .data
     g_hHotkeyThread   dq 0
     nid               istruc NOTIFYICONDATAW iend ; ? 宽字符托盘结构体
     g_TempMsgBuf      dw 256 dup(0)       ; ? 宽字符消息缓冲区(中文拼接)
+    RC4_Key           db 0x9A,0x5C,0x2F,0x7E,0x1D,0x3B,0x6A,0x8F ; RC4加密密钥表
 
 ; ====================== 【外部API声明 - 核心升级：全量宽字符xxxW API + UTF8编码API】 ======================
-extern WSAStartup:PROC, WSACleanup:PROC
-extern socket:PROC, closesocket:PROC, bind:PROC, listen:PROC, accept:PROC
-extern connect:PROC, send:PROC, recv:PROC, sendto:PROC, recvfrom:PROC
-extern CreateThread:PROC, WaitForSingleObject:PROC, CloseHandle:PROC, Sleep:PROC, GetTickCount:PROC
-extern HeapAlloc:PROC, HeapFree:PROC, GetProcessHeap:PROC
-extern inet_addr:PROC, inet_ntoa:PROC, memset:PROC
-extern GetAdaptersAddresses:PROC, setsockopt:PROC
-extern CreateMutexA:PROC, ReleaseMutex:PROC
-extern RegisterHotKey:PROC, UnregisterHotKey:PROC
-extern GetConsoleWindow:PROC, ShowWindow:PROC, IsWindowVisible:PROC
-extern Shell_NotifyIconW:PROC, LoadIcon:PROC, DestroyIcon:PROC ; ? Shell_NotifyIconW 宽字符版
-extern GetMessageA:PROC, TranslateMessage:PROC, DispatchMessageA:PROC
-extern PlaySoundA:PROC
+extern WSAStartup, WSACleanup
+extern socket, closesocket, bind, listen, accept
+extern connect, send, recv, sendto, recvfrom
+extern CreateThread, WaitForSingleObject, CloseHandle, Sleep, GetTickCount
+extern HeapAlloc, HeapFree, GetProcessHeap
+extern inet_addr, inet_ntoa, memset
+extern GetAdaptersAddresses, setsockopt
+extern CreateMutexA, ReleaseMutex
+extern RegisterHotKey, UnregisterHotKey
+extern GetConsoleWindow, ShowWindow, IsWindowVisible
+extern Shell_NotifyIconW, LoadIconW, DestroyIcon ; ? Shell_NotifyIconW 宽字符版
+extern GetMessageA, TranslateMessage, DispatchMessageA
+extern PlaySoundA
+; 缺失的控制台相关API函数
+extern GetStdHandle, SetConsoleCursorInfo, FillConsoleOutputCharacterA, SetConsoleCursorPosition, SetConsoleTextAttribute
 ; ? v07新增核心API: UTF8编码锁定 + 宽字符控制台API + 宽字符字符串处理
-extern SetConsoleCP:PROC, SetConsoleOutputCP:PROC
-extern GetConsoleMode:PROC, SetConsoleMode:PROC
-extern SetConsoleTitleW:PROC ; ? 宽字符窗口标题
-extern wprintf:PROC, _getws_s:PROC, wcslen:PROC ; ? 宽字符打印/输入/长度
+extern SetConsoleCP, SetConsoleOutputCP
+extern GetConsoleMode, SetConsoleMode
+extern SetConsoleTitleW ; ? 宽字符窗口标题
+extern wprintf, _getws_s, wcslen ; ? 宽字符打印/输入/长度
 
 ; ====================== 【代码段 - 完整源码，新增UTF8初始化+全宽字符适配，已标注】 ======================
 section .text
@@ -231,7 +234,10 @@ Unlock_Mutex:
 ; 功能: 锁定UTF8编码页+启用宽字符渲染，执行后控制台永久支持中文/Unicode
 ;-----------------------------------------------------------------------------
 Console_UTF8_Init:
-    push rbp rbx rsi rdi
+    push rbp
+    push rbx
+    push rsi
+    push rdi
     sub rsp, 0x28
     ; 步骤1: 锁定控制台输入/输出编码为 UTF-8 (65001)
     mov rcx, CP_UTF8
@@ -256,7 +262,10 @@ Console_UTF8_Init:
     mov rdx, 3
     call UI_Print_Msg
     add rsp, 0x28
-    pop rdi rsi rbx rbp
+    pop rdi
+    pop rsi
+    pop rbx
+    pop rbp
     ret
 
 ;-----------------------------------------------------------------------------
@@ -280,7 +289,10 @@ Play_Kiko_Sound:
 ; ? v07 升级【托盘气泡提示】宽字符版 - 中文消息完美显示，无乱码
 ;-----------------------------------------------------------------------------
 Show_Tray_Notification:
-    push rbx rbp rsi rdi
+    push rbx
+    push rbp
+    push rsi
+    push rdi
     sub rsp, 0x28
     call Lock_Mutex
     lea rsi, [TRAY_MSG_PREFIX]
@@ -319,7 +331,10 @@ Show_Tray_Notification:
     call Unlock_Mutex
     call Play_Kiko_Sound
     add rsp, 0x28
-    pop rdi rsi rbp rbx
+    pop rdi
+    pop rsi
+    pop rbp
+    pop rbx
     ret
 
 ;-----------------------------------------------------------------------------
@@ -350,7 +365,9 @@ Register_Global_Hotkey:
     ret
 
 Tray_Init:
-    push rbx rbp rsi
+    push rbx
+    push rbp
+    push rsi
     sub rsp, 0x28
     call GetConsoleWindow
     mov [nid + NOTIFYICONDATAW.hWnd], rax
@@ -360,7 +377,7 @@ Tray_Init:
     mov dword [nid + NOTIFYICONDATAW.uCallbackMessage], WM_TRAYICON
     xor rcx, rcx
     mov rdx, IDI_APPLICATION
-    call LoadIcon
+    call LoadIconW
     mov [g_hTrayIcon], rax
     mov [nid + NOTIFYICONDATAW.hIcon], rax
     lea rsi, [szTrayTip]
@@ -378,11 +395,14 @@ Tray_Init:
     call UI_Print_Msg
 .exit:
     add rsp, 0x28
-    pop rsi rbp rbx
+    pop rsi
+    pop rbp
+    pop rbx
     ret
 
 Toggle_Window_ShowHide:
-    push rbx rbp
+    push rbx
+    push rbp
     sub rsp, 0x28
     call Lock_Mutex
     mov rcx, [g_hWnd]
@@ -403,11 +423,15 @@ Toggle_Window_ShowHide:
 .exit:
     call Unlock_Mutex
     add rsp, 0x28
-    pop rbp rbx
+    pop rbp
+    pop rbx
     ret
 
 Hotkey_Tray_Thread:
-    push rbx rbp rsi rdi
+    push rbx
+    push rbp
+    push rsi
+    push rdi
     sub rsp, 0x28 + 128
     mov rbx, rsp
 .loop:
@@ -436,7 +460,10 @@ Hotkey_Tray_Thread:
     jmp .loop
 .exit:
     add rsp, 0x28 + 128
-    pop rdi rsi rbp rbx
+    pop rdi
+    pop rsi
+    pop rbp
+    pop rbx
     ret
 
 Cleanup_Tray_Hotkey:
@@ -476,7 +503,9 @@ Get_Random_Delay:
     ret
 
 Check_Seq_Duplicate:
-    push rbx rcx rsi
+    push rbx
+    push rcx
+    push rsi
     sub rsp, 0x28
     call Lock_Mutex
     mov rsi, 0
@@ -489,7 +518,11 @@ Check_Seq_Duplicate:
     inc rsi
     jmp .check
 .add_seq:
-    mov rsi, [g_DiscoverSeq] % MAX_SEQ_CACHE
+    mov rax, [g_DiscoverSeq]
+    mov rcx, MAX_SEQ_CACHE
+    xor rdx, rdx
+    div rcx
+    mov rsi, rdx
     mov [g_SeqCache + rsi*8], rbx
     mov rax, 1
     jmp .exit
@@ -498,11 +531,16 @@ Check_Seq_Duplicate:
 .exit:
     call Unlock_Mutex
     add rsp, 0x28
-    pop rsi rcx rbx
+    pop rsi
+    pop rcx
+    pop rbx
     ret
 
 RC4_Init:
-    push rbx rbp rsi rdi
+    push rbx
+    push rbp
+    push rsi
+    push rdi
     sub rsp, 0x28
     lea rdi, [g_RC4Ctx + RC4Context.sbox]
     mov ecx, 256
@@ -517,23 +555,46 @@ RC4_Init:
     xor ebx, ebx
     lea rsi, [g_RC4Ctx + RC4Context.sbox]
     mov ecx, 256
-    mov rbp, db 0x9A,0x5C,0x2F,0x7E,0x1D,0x3B,0x6A,0x8F
+    ; 使用预定义的RC4密码表
+    mov rbp, RC4_Key
     mov edx, 8
 .permute:
     mov al, byte [rsi + rcx - 1]
     add ebx, eax
-    add bl, byte [rbp + (rcx-1) % edx]
-    xchg al, byte [rsi + ebx % 256]
+    
+    ; 计算 (rcx-1) % edx
+    mov eax, ecx
+    dec eax
+    mov rdi, rdx
+    xor rdx, rdx
+    div rdi
+    mov rdi, rdx
+    add bl, byte [rbp + rdi]
+    
+    ; 计算 ebx % 256
+    mov eax, ebx
+    xor edx, edx
+    mov rdi, 256
+    div rdi
+    mov rdi, rdx
+    xchg al, byte [rsi + rdi]
+    
     mov byte [rsi + rcx - 1], al
     loop .permute
     mov dword [g_RC4Ctx + RC4Context.i], 0
     mov dword [g_RC4Ctx + RC4Context.j], 0
     add rsp, 0x28
-    pop rdi rsi rbp rbx
+    pop rdi
+    pop rsi
+    pop rbp
+    pop rbx
     ret
 
 RC4_Crypt:
-    push rbx rbp rsi rdi
+    push rbx
+    push rbp
+    push rsi
+    push rdi
     sub rsp, 0x28
     mov rsi, rcx
     mov rbx, rdx
@@ -548,7 +609,9 @@ RC4_Crypt:
     add edx, dword [rdi + rax]
     and edx, 255
     xchg dl, byte [rdi + rax]
-    mov cl, byte [rdi + (eax + edx) % 256]
+    add eax, edx
+    and eax, 255
+    mov cl, byte [rdi + rax]
     xor byte [rsi], cl
     inc rsi
     dec rbx
@@ -557,14 +620,18 @@ RC4_Crypt:
     mov [g_RC4Ctx + RC4Context.i], eax
     mov [g_RC4Ctx + RC4Context.j], edx
     add rsp, 0x28
-    pop rdi rsi rbp rbx
+    pop rdi
+    pop rsi
+    pop rbp
+    pop rbx
     ret
 
 ;-----------------------------------------------------------------------------
 ; ? v07 升级【UI初始化】宽字符版 - 先执行UTF8初始化，中文完美显示
 ;-----------------------------------------------------------------------------
 UI_Init:
-    push rbx rbp
+    push rbx
+    push rbp
     sub rsp, 0x28
     call Console_UTF8_Init ; ? 第一步执行，根治乱码
     mov rcx, -11
@@ -609,11 +676,13 @@ UI_Draw_Line:
     call wprintf
     mov qword [g_ChatRow], 3
     add rsp, 0x28
-    pop rbp rbx
+    pop rbp
+    pop rbx
     ret
 
 UI_Set_Cursor:
-    push rbx rbp
+    push rbx
+    push rbp
     sub rsp, 0x28
     mov rbx, rdx
     shl rbx, 16
@@ -622,34 +691,44 @@ UI_Set_Cursor:
     mov rdx, rbx
     call SetConsoleCursorPosition
     add rsp, 0x28
-    pop rbp rbx
+    pop rbp
+    pop rbx
     ret
 
 UI_Set_Color:
-    push rbx rbp
+    push rbx
+    push rbp
     sub rsp, 0x28
     mov rbx, rcx
     mov rcx, [g_hConsole]
     mov rdx, rbx
     call SetConsoleTextAttribute
     add rsp, 0x28
-    pop rbp rbx
+    pop rbp
+    pop rbx
     ret
 
 ;-----------------------------------------------------------------------------
 ; ? v07 升级【UI打印消息】宽字符版 - 中文无乱码，颜色区分不变
 ;-----------------------------------------------------------------------------
 UI_Print_Msg:
-    push rbx rbp rsi
+    push rbx
+    push rbp
+    push rsi
     sub rsp, 0x28
     call Lock_Mutex
     mov rsi, rcx
     mov rbx, rdx
-    cmp rbx,1  je .color_send
-    cmp rbx,2  je .color_recv
-    cmp rbx,3  je .color_status
-    cmp rbx,4  je .color_warn
-    cmp rbx,5  je .color_multi
+    cmp rbx, 1
+    je .color_send
+    cmp rbx, 2
+    je .color_recv
+    cmp rbx, 3
+    je .color_status
+    cmp rbx, 4
+    je .color_warn
+    cmp rbx, 5
+    je .color_multi
     jmp .color_def
 .color_send: mov rcx,0x9
 .color_recv: mov rcx,0x2
@@ -678,7 +757,9 @@ UI_Print_Msg:
     call UI_Set_Color
     call Unlock_Mutex
     add rsp,0x28
-    pop rsi rbp rbx
+    pop rsi
+    pop rbp
+    pop rbx
     ret
 
 Msg_Queue_Init:
@@ -703,7 +784,10 @@ Msg_Queue_Init:
     ret
 
 Msg_Queue_Push:
-    push rbx rbp rsi rdi
+    push rbx
+    push rbp
+    push rsi
+    push rdi
     sub rsp,0x28
     call Lock_Mutex
     mov rsi,rcx
@@ -720,19 +804,29 @@ Msg_Queue_Push:
 .write:
     cld
     rep movsw ; ? 宽字符复制
-    add qword [g_QueueTail],rbx*2
-    add qword [g_QueueSize],rbx*2
-    cmp rdi,rbp+MSG_QUEUE_MAX_SIZE
+    mov rax, rbx
+    shl rax, 1
+    add qword [g_QueueTail], rax
+    add qword [g_QueueSize], rax
+    mov rax, rbp
+    add rax, MSG_QUEUE_MAX_SIZE
+    cmp rdi, rax
     jl .exit
     mov qword [g_QueueTail],rbp
 .exit:
     call Unlock_Mutex
     add rsp,0x28
-    pop rdi rsi rbp rbx
+    pop rdi
+    pop rsi
+    pop rbp
+    pop rbx
     ret
 
 Recv_Frag_Reassembly:
-    push rbx rbp rsi rdi
+    push rbx
+    push rbp
+    push rsi
+    push rdi
     sub rsp,0x28
     mov rsi,rcx
     mov rbx,[g_FragRecvState + FragRecvState.state]
@@ -746,14 +840,20 @@ Recv_Frag_Reassembly:
     call GetProcessHeap
     mov rcx,rax
     mov rdx,0x8
-    mov r8,al*MSG_FRAG_SIZE
+    movzx r8, al
+    mov rax, MSG_FRAG_SIZE
+    mul r8
+    mov r8, rax
     call HeapAlloc
     mov [g_FragRecvState+FragRecvState.bufPtr],rax
     mov dword [g_FragRecvState+FragRecvState.state],1
 .recv_frag:
     mov al,byte [rsi+FragHeader.FragIndex]
     mov rdi,[g_FragRecvState+FragRecvState.bufPtr]
-    lea rdi,[rdi+(rax-1)*MSG_FRAG_SIZE]
+    dec rax
+    mov r8, MSG_FRAG_SIZE
+    mul r8
+    add rdi, rax
     lea rsi,[rsi+FragHeader_size]
     mov rcx,MSG_FRAG_SIZE
     cld
@@ -769,18 +869,29 @@ Recv_Frag_Reassembly:
     xor rax,rax
 .exit:
     add rsp,0x28
-    pop rdi rsi rbp rbx
+    pop rdi
+    pop rsi
+    pop rbp
+    pop rbx
     ret
 
 Long_Msg_Send:
-    push rbx rbp rsi rdi
+    push rbx
+    push rbp
+    push rsi
+    push rdi
     sub rsp,0x28 + FragHeader_size + MSG_BUF_BASE
     mov rsi,rcx
     mov rbx,rdx
     mov rbp,r8
     lea rdi,[rsp+0x28]
     mov byte [rdi+FragHeader.FragIndex],0
-    mov al,(rbx+MSG_FRAG_SIZE-1)/MSG_FRAG_SIZE
+    mov rax, rbx
+    add rax, MSG_FRAG_SIZE - 1
+    mov rcx, MSG_FRAG_SIZE
+    xor rdx, rdx
+    div rcx
+    mov al, al
     mov byte [rdi+FragHeader.TotalFrags],al
 .loop:
     inc byte [rdi+FragHeader.FragIndex]
@@ -812,11 +923,15 @@ Long_Msg_Send:
     jmp .loop
 .exit:
     add rsp,0x28+FragHeader_size+MSG_BUF_BASE
-    pop rdi rsi rbp rbx
+    pop rdi
+    pop rsi
+    pop rbp
+    pop rbx
     ret
 
 Auto_Reconnect:
-    push rbx rsi
+    push rbx
+    push rsi
     sub rsp,0x28 + SOCKADDR_LEN
     mov rsi,rcx
 .loop:
@@ -860,11 +975,16 @@ Auto_Reconnect:
     mov rax,0
 .exit:
     add rsp,0x28+SOCKADDR_LEN
-    pop rsi rbx
+    pop rsi
+    pop rbx
     ret
 
 Send_Discovery_Packet:
-    push rbx rbp rsi rdi r12
+    push rbx
+    push rbp
+    push rsi
+    push rdi
+    push r12
     sub rsp,0x28 + SOCKADDR_LEN + Discover_Packet_size
     call Lock_Mutex
     call GetTickCount
@@ -926,11 +1046,18 @@ Send_Discovery_Packet:
     call closesocket
 .exit:
     add rsp,0x28+SOCKADDR_LEN+Discover_Packet_size
-    pop r12 rdi rsi rbp rbx
+    pop r12
+    pop rdi
+    pop rsi
+    pop rbp
+    pop rbx
     ret
 
 Recv_Discovery_Packet:
-    push rbx rbp rsi rdi
+    push rbx
+    push rbp
+    push rsi
+    push rdi
     sub rsp,0x28 + MSG_BUF_BASE + SOCKADDR_LEN
     mov rcx,[g_hUDPSock]
     lea rdx,[rsp+0x28]
@@ -971,21 +1098,35 @@ Recv_Discovery_Packet:
     push 16
     call sendto
     call Lock_Mutex
-    mov eax,[rsp+0x28+MSG_BUF_BASE+4]
+    lea rdx,[rsp+0x28+MSG_BUF_BASE+4]
+    mov eax,[rdx]
     mov rcx,0
 .check_node:
     cmp rcx,[g_NodeCount]
     jge .add_node
-    cmp [g_NodeList+rcx*Node_Info_size+Node_Info.IPAddr],eax
+    mov rax, rcx
+    mov rdx, Node_Info_size
+    mul rdx
+    lea rdx, [g_NodeList+rax+Node_Info.IPAddr]
+    cmp [rdx], eax
     je .exit
     inc rcx
     jmp .check_node
 .add_node:
     cmp rcx,NODE_LIST_MAX
     jge .exit
-    mov [g_NodeList+rcx*Node_Info_size+Node_Info.IPAddr],eax
+    mov rax, rcx
+    mov rdx, Node_Info_size
+    mul rdx
+    lea rdx, [g_NodeList+rax+Node_Info.IPAddr]
+    mov [rdx], eax
     call GetTickCount
-    mov [g_NodeList+rcx*Node_Info_size+Node_Info.LastAlive],rax
+    mov r11, rax  ; 保存GetTickCount()的返回值
+    mov rax, rcx
+    mov rdx, Node_Info_size
+    mul rdx
+    lea rdx, [g_NodeList+rax+Node_Info.LastAlive]
+    mov [rdx], r11  ; 写入保存的值
     inc qword [g_NodeCount]
     call inet_ntoa
     lea rcx,[szNodeFound]
@@ -995,11 +1136,15 @@ Recv_Discovery_Packet:
 .exit:
     call Unlock_Mutex
     add rsp,0x28+MSG_BUF_BASE+SOCKADDR_LEN
-    pop rdi rsi rbp rbx
+    pop rdi
+    pop rsi
+    pop rbp
+    pop rbx
     ret
 
 LAN_Node_Discover:
-    push rbx rbp
+    push rbx
+    push rbp
     sub rsp,0x28
     lea rcx,[szAutoDiscover]
     mov rdx,3
@@ -1012,11 +1157,15 @@ LAN_Node_Discover:
     jmp .receive
 .exit:
     add rsp,0x28
-    pop rbp rbx
+    pop rbp
+    pop rbx
     ret
 
 Multicast_Init:
-    push rbx rbp rsi rdi
+    push rbx
+    push rbp
+    push rsi
+    push rdi
     sub rsp,0x28 + SOCKADDR_LEN + ip_mreq_size
     mov rcx,2
     mov rdx,2
@@ -1048,14 +1197,20 @@ Multicast_Init:
     call setsockopt
 .exit:
     add rsp,0x28+SOCKADDR_LEN+ip_mreq_size
-    pop rdi rsi rbp rbx
+    pop rdi
+    pop rsi
+    pop rbp
+    pop rbx
     ret
 
 ;-----------------------------------------------------------------------------
 ; ? v07 升级【TCP接收线程】宽字符版 - 中文消息接收+托盘提示无乱码
 ;-----------------------------------------------------------------------------
 P2P_Recv_Thread:
-    push rbx rbp rsi rdi
+    push rbx
+    push rbp
+    push rsi
+    push rdi
     sub rsp,0x28 + MSG_BUF_BASE
 .loop:
     call Lock_Mutex
@@ -1093,14 +1248,20 @@ P2P_Recv_Thread:
     jmp .loop
 .exit:
     add rsp,0x28+MSG_BUF_BASE
-    pop rdi rsi rbp rbx
+    pop rdi
+    pop rsi
+    pop rbp
+    pop rbx
     ret
 
 ;-----------------------------------------------------------------------------
 ; ? v07 升级【UDP组播接收线程】宽字符版 - 中文组播消息无乱码
 ;-----------------------------------------------------------------------------
 UDP_Multicast_Recv_Thread:
-    push rbx rbp rsi rdi
+    push rbx
+    push rbp
+    push rsi
+    push rdi
     sub rsp,0x28 + MSG_BUF_BASE + SOCKADDR_LEN
 .loop:
     mov rcx,[g_hUDPSock]
@@ -1125,14 +1286,20 @@ UDP_Multicast_Recv_Thread:
     jmp .loop
 .exit:
     add rsp,0x28+MSG_BUF_BASE+SOCKADDR_LEN
-    pop rdi rsi rbp rbx
+    pop rdi
+    pop rsi
+    pop rbp
+    pop rbx
     ret
 
 ;-----------------------------------------------------------------------------
 ; ? v07 升级【UDP组播发送线程】宽字符版 - 中文输入+发送无乱码
 ;-----------------------------------------------------------------------------
 UDP_Multicast_Send_Thread:
-    push rbx rbp rsi rdi
+    push rbx
+    push rbp
+    push rsi
+    push rdi
     sub rsp,0x28 + MSG_BUF_BASE + SOCKADDR_LEN
     lea rdi,[rsp+0x28+MSG_BUF_BASE]
     mov word [rdi],2
@@ -1159,7 +1326,8 @@ UDP_Multicast_Send_Thread:
     call RC4_Crypt
     mov rcx,[g_hUDPSock]
     lea rdx,[rsp+0x28]
-    mov r8,rax*2
+    mov r8, rax
+    shl r8, 1
     mov r9,0
     lea r10,[rsp+0x28+MSG_BUF_BASE]
     push 16
@@ -1173,14 +1341,20 @@ UDP_Multicast_Send_Thread:
     jmp .loop
 .exit:
     add rsp,0x28+MSG_BUF_BASE+SOCKADDR_LEN
-    pop rdi rsi rbp rbx
+    pop rdi
+    pop rsi
+    pop rbp
+    pop rbx
     ret
 
 ;-----------------------------------------------------------------------------
 ; ? v07 升级【核心业务】宽字符输入发送 - 中文输入完美支持，回车发送无乱码
 ;-----------------------------------------------------------------------------
 TCP_P2P_Core:
-    push rbx rbp rsi rdi
+    push rbx
+    push rbp
+    push rsi
+    push rdi
     sub rsp,0x28 + SOCKADDR_LEN
     call UI_Init
     call Msg_Queue_Init
@@ -1282,14 +1456,20 @@ TCP_P2P_Core:
     jmp .send_loop
 .exit:
     add rsp,0x28+SOCKADDR_LEN
-    pop rdi rsi rbp rbx
+    pop rdi
+    pop rsi
+    pop rbp
+    pop rbx
     ret
 
 ;-----------------------------------------------------------------------------
 ; 程序主入口(无修改，兼容宽字符)
 ;-----------------------------------------------------------------------------
 main:
-    push rbx rbp rsi rdi
+    push rbx
+    push rbp
+    push rsi
+    push rdi
     sub rsp,0x28
     mov rcx,WS_VERSION
     lea rdx,[WSADataBuf]
@@ -1333,6 +1513,10 @@ main:
     mov rcx,[g_QueueBuf]
     test rcx,rcx
     jz .skip6
+    call GetProcessHeap
+    mov r8, rcx
+    xor rdx, rdx
+    mov rcx, r8
     call HeapFree
 .skip6:
     mov rcx,[g_hMutex]
@@ -1347,15 +1531,18 @@ main:
     call UI_Print_Msg
 .exit:
     add rsp,0x28
-    pop rdi rsi rbp rbx
+    pop rdi
+    pop rsi
+    pop rbp
+    pop rbx
     ret
 
 
 
 
 
-### 第一步：NASM汇编编译为OBJ文件
-#nasm -f win64 P2P_Chat_UI_v07_UTF8_UNICODE.asm -o P2P_Chat_UI_v07_UTF8_UNICODE.obj
+; ### 第一步：NASM汇编编译为OBJ文件
+;nasm -f win64 P2P_Chat_UI_v07_UTF8_UNICODE.asm -o P2P_Chat_UI_v07_UTF8_UNICODE.obj
 
-### 第二步：微软Link链接为EXE（库文件与v06一致，无需修改）
-#link /subsystem:console /machine:x64 P2P_Chat_UI_v07_UTF8_UNICODE.obj ws2_32.lib kernel32.lib user32.lib shell32.lib winmm.lib iphlpapi.lib -out:P2P_Chat_UI_v07_UTF8_UNICODE.exe
+; ### 第二步：微软Link链接为EXE（库文件与v06一致，无需修改）
+;link /subsystem:console /machine:x64 P2P_Chat_UI_v07_UTF8_UNICODE.obj ws2_32.lib kernel32.lib user32.lib shell32.lib winmm.lib iphlpapi.lib -out:P2P_Chat_UI_v07_UTF8_UNICODE.exe
